@@ -4,24 +4,27 @@ import time
 import os
 import requests
 
-
-def bot_login():
+def authenticate():
     #Log in using reddit credentials
     print("Logging in...")
-    r = praw.Reddit(username=config.username,
+    reddit = praw.Reddit(username=config.username,
                     password=config.password,
                     client_id=config.client_id,
                     client_secret=config.client_secret,
                     user_agent="reddit_bot by Ken /u/kendomustdie")
-    print("Logged in!")
+    print("Authenticated as {}".format(reddit.user.me()))
 
-    return r
+    return reddit
 
+def main():
+    reddit = authenticate()
+    while True:
+        run_bot(reddit, comments_replied_to)
 
-def run_bot(r, comments_replied_to):
+def run_bot(reddit, comments_replied_to):
     print("Obtaining 25 comments...")
 # Takes obtained comments and for every instance of the word 'joke', uses the icndb API to post a chuck norris joke in reply
-    for comment in r.subreddit('test').comments(limit=10):
+    for comment in reddit.subreddit('test').comments(limit=10):
         if "!joke" in comment.body and comment.id not in comments_replied_to and comment.author != r.user.me():
             print("String with \"!joke\" found in comment " + comment.id)
 
@@ -57,10 +60,8 @@ def get_saved_comments():
 
     return comments_replied_to
 
-
-r = bot_login()
 comments_replied_to = get_saved_comments()
 print(comments_replied_to)
 
-while True:
-    run_bot(r, comments_replied_to)
+if __name__ == '__main__':
+        main()
